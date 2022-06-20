@@ -5,7 +5,7 @@ const path = require("path");
 const { USER, PASSWORD, HOST } = process.env;
 
 const sequelize = new Sequelize(
-  `postgres://${USER}:${PASSWORD}@${HOST}/videogames`,
+  `postgres://${USER}:${PASSWORD}@${HOST}/games`,
   {
     logging: false,
     native: false,
@@ -35,10 +35,10 @@ let capsEntries = entries.map((entry) => [
 
 sequelize.models = Object.fromEntries(capsEntries);
 
-const { videogame, genre } = sequelize.models;
+const { Videogame, Genre } = sequelize.models;
 
-videogame.belongsToMany(genre, { through: "videogame_genre" });
-genre.belongsToMany(videogame, { through: "videogame_genre" });
+Videogame.belongsToMany(Genre, { through: "videogame_genre" });
+Genre.belongsToMany(Videogame, { through: "videogame_genre" });
 
 module.exports = {
   ...sequelize.models,
