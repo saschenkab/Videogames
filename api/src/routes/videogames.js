@@ -1,7 +1,9 @@
 const { Router } = require("express");
+const { Videogame, Genre } = require("../database");
 const axios = require("axios");
 const { getApiGames } = require("../common/controllers");
 const { getGameByName, APIKEY, getGame } = require("../common/endpoints");
+const { Op } = require("sequelize");
 const games = Router();
 
 games.get("/", async (req, res) => {
@@ -21,13 +23,37 @@ games.get("/", async (req, res) => {
         };
       });
 
-      if (apiResponse.length === 0) {
-        return res.status(404).json({ message: "Game not found" });
-      }
+      let databaseGames = await Videogame.findAll({
+        where: {
+          name: {
+            [Op.iLike]: `%` + name.toLowerCase() + `%`,
+          },
+        },
+        include: { model: Genre },
+      });
+      console.log(
+        "🚀 ~ file: videogames.js ~ line 33 ~ games.get ~ databaseGames",
+        databaseGames
+      );
 
-      return res.status(200).json(apiResponse);
-    } catch (err) {
-      console.log(err);
+      databaseGames = databaseGames.map((game) => {
+        return {
+          id: game.id,
+          name: game.name,
+          genre: game.genres ? game.genres.map((genre) => genre.name) : [],
+          image: game.image,
+          rating: game.rating,
+        };
+      });
+      let games = [].concat(apiResponse, databaseGames);
+      if (games.length) {
+        return res.json(games);
+      } else {
+        return res.status(404).json({ error: "No games found" });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.json(error);
     }
   }
   const games = await getApiGames();
@@ -39,7 +65,6 @@ games.get("/videogame/:id", async (req, res) => {
 
   try {
     let game = (await axios.get(`${getGame}${id}${APIKEY}`)).data;
-    console.log(game);
 
     if (Object.keys(game).length > 1) {
       return res.status(200).json({
