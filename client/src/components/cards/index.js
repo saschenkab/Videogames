@@ -1,13 +1,20 @@
 import React from "react";
 import Card from "../card";
-import styled from "styled-components";
-
-const CardsWrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-`;
+import { useSelector } from "react-redux";
+import Loader from "../loader";
+import sad from "../../common/images/sad.gif";
+import { MessageWrapper, CardsWrapper, Message, Gif } from "./styles";
 
 const Cards = ({ videogames }) => {
+  const loading = useSelector((state) => state.loading);
+
+  if (loading) {
+    return (
+      <>
+        <Loader />
+      </>
+    );
+  }
   return (
     <div>
       {Array.isArray(videogames) && videogames.length > 0 ? (
@@ -23,9 +30,10 @@ const Cards = ({ videogames }) => {
           ))}
         </CardsWrapper>
       ) : (
-        <div>
-          <h1>No hay juegos</h1>
-        </div>
+        <MessageWrapper>
+          <Message>No games Found</Message>
+          <Gif src={sad} alt="" />
+        </MessageWrapper>
       )}
     </div>
   );
